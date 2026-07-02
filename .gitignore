@@ -1,0 +1,10 @@
+node_modules/
+data/
+uploads/avatars/*
+uploads/posts/*
+!uploads/avatars/.gitkeep
+!uploads/posts/.gitkeep
+.env
+client/dist/
+*.db
+.DS_Store
