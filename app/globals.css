@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --isa-blue: #1A56DB;
+    --isa-blue-dark: #1e3a8a;
+  }
+
+  html {
+    @apply antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm;
+  }
+
+  .btn-primary {
+    @apply bg-isa-600 hover:bg-isa-700 active:bg-isa-800 text-white font-semibold
+           px-4 py-2.5 rounded-xl transition-all duration-150 
+           focus:outline-none focus:ring-2 focus:ring-isa-500 focus:ring-offset-2
+           dark:focus:ring-offset-gray-900
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 
+           text-gray-700 dark:text-gray-200 font-semibold
+           px-4 py-2.5 rounded-xl transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
+           dark:focus:ring-offset-gray-900;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400
+           font-medium px-3 py-2 rounded-xl transition-all duration-150;
+  }
+
+  .input {
+    @apply w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+           rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-isa-500 focus:border-transparent
+           transition-all duration-150;
+  }
+
+  .badge-online {
+    @apply absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full 
+           border-2 border-white dark:border-gray-900;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium
+           text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white
+           hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150;
+  }
+
+  .sidebar-link.active {
+    @apply bg-isa-50 dark:bg-isa-950 text-isa-600 dark:text-isa-400;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-isa-600 to-isa-800 bg-clip-text text-transparent;
+  }
+}

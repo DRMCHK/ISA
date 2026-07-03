@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum GroupRole {
+  MEMBER
+  MODERATOR
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  username     String   @unique
+  avatarUrl    String?
+  bio          String?
+  role         Role     @default(MEMBER)
+  isOnline     Boolean  @default(false)
+  lastSeen     DateTime @default(now())
+  publicKey    String   // NaCl public key for E2E DMs (base64)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts            Post[]
+  comments         Comment[]
+  likes            Like[]
+  sentMessages     Message[]      @relation("Sender")
+  receivedMessages Message[]      @relation("Receiver")
+  friends          Friendship[]   @relation("UserFriends")
+  friendOf         Friendship[]   @relation("FriendOf")
+  reports          Report[]
+  groupMemberships GroupMember[]
+  groupMessages    GroupMessage[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String?
+  mediaUrl  String?
+  mediaType String?  // "image" | "video" | "link"
+  linkUrl   String?
+  flagged   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  postId    String
+  authorId  String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  ciphertext String   // E2E encrypted — server cannot read
+  nonce      String   // base64 NaCl nonce
+  senderId   String
+  receiverId String
+  createdAt  DateTime @default(now())
+  sender     User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+model Friendship {
+  id        String       @id @default(cuid())
+  userId    String
+  friendId  String
+  status    FriendStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User         @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+}
+
+model Group {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  avatarUrl   String?
+  inviteCode  String    @unique @default(cuid())
+  createdById String
+  createdAt   DateTime  @default(now())
+  members     GroupMember[]
+  messages    GroupMessage[]
+}
+
+model GroupMember {
+  id      String    @id @default(cuid())
+  groupId String
+  userId  String
+  role    GroupRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  group   Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model GroupMessage {
+  id        String   @id @default(cuid())
+  content   String   // NOT E2E encrypted — admin can moderate
+  groupId   String
+  authorId  String
+  createdAt DateTime @default(now())
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  type      String   // "REPORT" | "SUGGESTION"
+  content   String
+  anonymous Boolean  @default(true)
+  authorId  String?
+  createdAt DateTime @default(now())
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+}
