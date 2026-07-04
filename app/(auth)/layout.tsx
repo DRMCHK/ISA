@@ -25,7 +25,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 width={64}
                 height={64}
                 className="object-contain"
-                onError={() => undefined}
               />
             </div>
           </div>

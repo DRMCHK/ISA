@@ -59,7 +59,7 @@ export default async function ProfilePage({ params }: Props) {
   return (
     <ProfileClient
       profileUser={user}
-      posts={posts.map((p) => ({ ...p, isLiked: p.likes.length > 0 }))}
+      posts={posts.map((p) => ({ ...p, isLiked: p.likes.length > 0, createdAt: p.createdAt.toISOString() }))}
       currentUser={{ id: session.user.id, role: session.user.role }}
       friendship={friendship}
     />

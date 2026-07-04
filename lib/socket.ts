@@ -31,12 +31,12 @@ export function initSocketServer(io: SocketServer): void {
   io.use((socket, next) => {
     const userId = socket.handshake.auth?.userId as string | undefined;
     if (!userId) return next(new Error('userId required in handshake auth'));
-    (socket as SocketWithUser).userId = userId;
+    (socket as unknown as SocketWithUser).userId = userId;
     next();
   });
 
   io.on('connection', async (socket) => {
-    const s = socket as SocketWithUser;
+    const s = socket as unknown as SocketWithUser;
     const userId = s.userId;
 
     connectedUsers.set(userId, socket.id);

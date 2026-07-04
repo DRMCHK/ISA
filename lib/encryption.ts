@@ -1,5 +1,5 @@
 import nacl from 'tweetnacl';
-import { encodeBase64, decodeBase64, encodeUTF8, decodeUTF8 } from 'tweetnacl-util';
+import { encodeBase64, decodeBase64 } from 'tweetnacl-util';
 
 export interface EncryptedMessage {
   ciphertext: string; // base64
@@ -31,7 +31,7 @@ export function encryptMessage(
   const recipientPublicKey = decodeBase64(recipientPublicKeyB64);
   const senderPrivateKey = decodeBase64(senderPrivateKeyB64);
   const nonce = nacl.randomBytes(nacl.box.nonceLength);
-  const messageUint8 = encodeUTF8(plaintext);
+  const messageUint8 = new TextEncoder().encode(plaintext);
 
   const encrypted = nacl.box(messageUint8, nonce, recipientPublicKey, senderPrivateKey);
 
@@ -59,7 +59,7 @@ export function decryptMessage(
     const decrypted = nacl.box.open(ciphertext, nonce, senderPublicKey, recipientPrivateKey);
     if (!decrypted) return null;
 
-    return decodeUTF8(decrypted);
+    return new TextDecoder().decode(decrypted);
   } catch {
     return null;
   }
