@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import bcrypt from 'bcryptjs';
-import sanitizeHtml from 'sanitize-html';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateKeyPair } from '@/lib/encryption';
-import { validateStrongPassword } from '@/lib/utils';
+import { validateStrongPassword, stripHtml } from '@/lib/utils';
 import { Role } from '@prisma/client';
 
 // POST /api/auth/register
@@ -23,7 +20,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'All fields required' }, { status: 400 });
   }
 
-  const sanitizedName = sanitizeHtml(name, { allowedTags: [], allowedAttributes: {} }).trim().slice(0, 100);
+  // Replace sanitize-html with lightweight stripHtml + username regex cleanup
+  const sanitizedName = stripHtml(name).trim().slice(0, 100);
   const sanitizedUsername = username.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 30);
   const sanitizedEmail = email.trim().toLowerCase();
 
@@ -31,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Username must be at least 3 characters (letters, numbers, _, -)' }, { status: 400 });
   }
 
-  // Any user can register — password strength enforced for members too
+  // Password strength enforced for all users
   const pwError = validateStrongPassword(password);
   if (pwError) return NextResponse.json({ error: pwError }, { status: 400 });
 

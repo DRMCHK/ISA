@@ -15,9 +15,8 @@ build/
 .env.test.local
 .env.production.local
 
-# Prisma
+# Prisma — NE PAS ignorer migrations/ (Render en a besoin pour migrate deploy)
 prisma/*.db
-prisma/migrations/
 
 # Debug
 npm-debug.log*
@@ -34,10 +33,14 @@ next-env.d.ts
 uploads/
 dist/
 
-# Old stack (preserved for reference)
+# Old stack
 client/node_modules/
 server/node_modules/
 
 # IDE
 .vscode/
 .idea/
+
+# Scripts locaux (ne pas pousser)
+reinstall.ps1
+push-to-github.bat

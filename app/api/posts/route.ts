@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import sanitizeHtml from 'sanitize-html';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { moderatePost } from '@/lib/moderation';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { stripHtml } from '@/lib/utils';
 
 // GET /api/posts — feed (friends' posts, chronological)
 export async function GET(req: NextRequest) {
@@ -67,7 +67,8 @@ export async function POST(req: NextRequest) {
     linkUrl?: string;
   };
 
-  const content = body.content ? sanitizeHtml(body.content, { allowedTags: [], allowedAttributes: {} }) : null;
+  // Replace sanitize-html with our lightweight stripHtml utility
+  const content = body.content ? stripHtml(body.content).slice(0, 5000) : null;
   const { flagged, reason } = await moderatePost(content, body.linkUrl ?? null);
 
   const post = await prisma.post.create({

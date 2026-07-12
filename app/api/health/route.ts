@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
-// GET /api/health
+// GET /api/health — used by Render health check
 export async function GET() {
-  return NextResponse.json({ status: 'ok', platform: 'ISA Link', version: '2.0.0' });
+  return NextResponse.json(
+    { status: 'ok', platform: 'ISA Link', version: '2.0.0', timestamp: new Date().toISOString() },
+    { status: 200 }
+  );
 }

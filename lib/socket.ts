@@ -41,8 +41,8 @@ export function initSocketServer(io: SocketServer): void {
 
     connectedUsers.set(userId, socket.id);
 
-    // Mark user online in DB
-    await prisma.user.update({
+    // Mark user online in DB (non-blocking, safe fail)
+    prisma.user.update({
       where: { id: userId },
       data: { isOnline: true },
     }).catch(() => undefined);
@@ -114,17 +114,24 @@ export function initSocketServer(io: SocketServer): void {
     socket.on('disconnect', async () => {
       connectedUsers.delete(userId);
 
-      await prisma.user.update({
+      // Update DB presence (non-blocking, safe fail — important for Render free tier spin-downs)
+      prisma.user.update({
         where: { id: userId },
         data: { isOnline: false, lastSeen: new Date() },
       }).catch(() => undefined);
 
+      // Notify friends of offline status
       for (const friendId of friendIds) {
         const friendSocketId = connectedUsers.get(friendId);
         if (friendSocketId) {
           io.to(friendSocketId).emit('friend_status', { userId, isOnline: false });
         }
       }
+    });
+
+    // ── Error handler ──────────────────────────────────────────
+    socket.on('error', (err) => {
+      console.error(`[Socket] Error for user ${userId}:`, err.message);
     });
   });
 }

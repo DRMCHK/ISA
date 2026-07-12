@@ -4,6 +4,22 @@ export function cn(...inputs: ClassValue[]): string {
   return clsx(inputs);
 }
 
+/**
+ * Strip all HTML tags from a string — replaces sanitize-html for plain-text use cases.
+ * This is safe for server-side use and has zero dependencies.
+ */
+export function stripHtml(input: string): string {
+  return input
+    .replace(/<[^>]*>/g, '')        // remove all HTML tags
+    .replace(/&amp;/g, '&')         // decode common HTML entities
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+}
+
 export function formatRelativeTime(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();

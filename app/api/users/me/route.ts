@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import sanitizeHtml from 'sanitize-html';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { stripHtml } from '@/lib/utils';
 
 // GET /api/users/me
 export async function GET(req: NextRequest) {
@@ -28,8 +28,8 @@ export async function PATCH(req: NextRequest) {
   const { name, bio, avatarUrl } = (await req.json()) as { name?: string; bio?: string; avatarUrl?: string };
 
   const data: Record<string, string> = {};
-  if (name) data.name = sanitizeHtml(name, { allowedTags: [], allowedAttributes: {} }).trim().slice(0, 100);
-  if (bio !== undefined) data.bio = sanitizeHtml(bio, { allowedTags: [], allowedAttributes: {} }).trim().slice(0, 500);
+  if (name) data.name = stripHtml(name).trim().slice(0, 100);
+  if (bio !== undefined) data.bio = stripHtml(bio).trim().slice(0, 500);
   if (avatarUrl) data.avatarUrl = avatarUrl;
 
   const user = await prisma.user.update({
