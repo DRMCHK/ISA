@@ -4,6 +4,8 @@
 
 A full-stack social media platform for international students, built with Next.js 14, TypeScript, Prisma, PostgreSQL, Socket.io, and TweetNaCl E2E encryption.
 
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDRMCHK%2FISA&env=DATABASE_URL,NEXTAUTH_SECRET,NEXTAUTH_URL,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET&envDescription=Fill%20in%20your%20environment%20variables&project-name=isa-link&repository-name=ISA)
+
 ---
 
 ## Tech Stack
@@ -18,50 +20,161 @@ A full-stack social media platform for international students, built with Next.j
 | Media | Cloudinary |
 | DM Encryption | TweetNaCl (E2E, client-side keys) |
 | Realtime | Socket.io (200+ connections) |
+| Deployment | Vercel / Railway / Render / Docker |
 
 ---
 
 ## Prerequisites
 
+### For Local Development
+
 1. **Node.js 20+** — [nodejs.org](https://nodejs.org)
-2. **PostgreSQL** — [postgresql.org](https://www.postgresql.org/download/windows/) or Docker:
+2. **PostgreSQL 14+** — [postgresql.org](https://www.postgresql.org/download/) or use Docker:
    ```bash
-   docker run --name isa-postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=isa_link -p 5432:5432 -d postgres:16
+   docker run --name isa-postgres \
+     -e POSTGRES_PASSWORD=postgres \
+     -e POSTGRES_DB=isa_link \
+     -p 5432:5432 -d postgres:16
    ```
-3. **Cloudinary account** (free) — [cloudinary.com](https://cloudinary.com)
+3. **Cloudinary account** (free tier works) — [cloudinary.com](https://cloudinary.com)
+
+### For Production Deployment
+
+- **Vercel account** (free) — [vercel.com](https://vercel.com)
+- **PostgreSQL database** (e.g., Supabase, Railway, or AWS RDS)
+- **GitHub account** for deployment automation
 
 ---
 
-## Setup
+## Quick Start
 
-### 1. Install dependencies
+### 1. Clone & Install
+
 ```bash
+git clone https://github.com/DRMCHK/ISA.git
+cd ISA
 npm install
 ```
 
-### 2. Configure environment
+### 2. Configure Environment
+
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
-Edit `.env` and fill in all values:
+
+Edit `.env.local` with your values:
 - `DATABASE_URL` — PostgreSQL connection string
-- `NEXTAUTH_SECRET` — generate with: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
-- `NEXTAUTH_URL` — your app URL (e.g., `http://localhost:3000`)
+- `NEXTAUTH_SECRET` — run: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
+- `NEXTAUTH_URL` — `http://localhost:3000` (development) or your domain (production)
 - `CLOUDINARY_*` — from your Cloudinary dashboard
 - `ADMIN_SEED_EMAIL` / `ADMIN_SEED_PASSWORD` — initial admin credentials
 
-### 3. Initialize database
+### 3. Initialize Database
+
 ```bash
-npm run db:migrate    # Run migrations
-npm run db:seed       # Create the admin account
+npm run db:migrate    # Create tables
+npm run db:seed       # Create admin account
 ```
 
-### 4. Start development server
+### 4. Start Development
+
 ```bash
 npm run dev
 ```
 
-App runs at **http://localhost:3000**
+Open [http://localhost:3000](http://localhost:3000) — you should see the login page.
+
+---
+
+## Docker (Recommended for Production)
+
+### Using Docker Compose (simplest)
+
+```bash
+# Create .env file with your values
+cp .env.example .env
+
+# Start PostgreSQL + app
+docker-compose up -d
+
+# Initialize database
+docker exec isa_app npm run db:migrate
+docker exec isa_app npm run db:seed
+
+# View logs
+docker-compose logs -f app
+```
+
+Then visit [http://localhost:3000](http://localhost:3000).
+
+### Manual Docker Build
+
+```bash
+docker build -t isa-link .
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgresql://..." \
+  -e NEXTAUTH_SECRET="..." \
+  -e NEXTAUTH_URL="..." \
+  isa-link
+```
+
+---
+
+## Deploy to Production
+
+### Option 1: Vercel (Recommended, Free)
+
+**One-click deploy:**
+
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDRMCHK%2FISA&env=DATABASE_URL,NEXTAUTH_SECRET,NEXTAUTH_URL,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET&envDescription=Fill%20in%20your%20environment%20variables&project-name=isa-link&repository-name=ISA)
+
+**Manual steps:**
+1. Push to GitHub
+2. Go to [vercel.com](https://vercel.com) → Import Project → Select this repo
+3. Configure environment variables (from `.env.example`)
+4. Click Deploy
+
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) will automatically deploy on every push to `main`.
+
+### Option 2: Railway.app (Free tier)
+
+1. Push to GitHub
+2. Go to [railway.app](https://railway.app) → Create Project → Deploy from GitHub
+3. Select this repo
+4. Add PostgreSQL plugin
+5. Add environment variables
+6. Deploy
+
+### Option 3: Render.com
+
+1. Push to GitHub
+2. Go to [render.com](https://render.com) → Create → Web Service
+3. Connect your GitHub repo
+4. Set build command: `npm run build`
+5. Set start command: `npm start`
+6. Create a PostgreSQL resource
+7. Add environment variables from `.env.example`
+
+### Option 4: Self-hosted (VPS, AWS, DigitalOcean)
+
+```bash
+# Clone repo on your server
+git clone https://github.com/DRMCHK/ISA.git
+cd ISA
+
+# Setup environment
+cp .env.example .env
+# Edit .env with production values
+
+# Build with Docker
+docker build -t isa-link .
+docker run -d -p 3000:3000 --restart=always isa-link
+
+# Or use Docker Compose
+docker-compose up -d
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed guides for each platform.
 
 ---
 
@@ -69,92 +182,167 @@ App runs at **http://localhost:3000**
 
 | Script | Description |
 |---|---|
-| `npm run dev` | Start development server (Next.js + Socket.io) |
+| `npm run dev` | Start dev server (Next.js + Socket.io on :3000) |
 | `npm run build` | Build production bundle |
 | `npm start` | Start production server |
 | `npm run db:migrate` | Run Prisma migrations |
-| `npm run db:seed` | Seed initial admin account |
-| `npm run db:studio` | Open Prisma Studio |
-| `npm run type-check` | TypeScript type check |
+| `npm run db:seed` | Create admin account |
+| `npm run db:studio` | Open Prisma Studio UI |
+| `npm run db:reset` | **Dangerous**: wipe & reset database |
+| `npm run type-check` | TypeScript type checking |
+| `npm run lint` | ESLint checks |
 
 ---
 
 ## Project Structure
 
 ```
-/app                    Next.js App Router pages & API routes
-  /api                  REST API endpoints
-  /(auth)               Login & Register pages
-  /(main)               Protected app pages
-  /admin                Admin panel (ADMIN role only)
-/components
-  /layout               Header, Sidebar
-  /messages             ChatWindow, MessageBubble, MessagesClient
-  /groups               GroupClient
-  /profile              ProfileClient
-  /providers            ThemeProvider, SessionProvider, SocketProvider
-  /ui                   Avatar, PostCard, CreatePost, CommentSection, ReportModal, DarkModeToggle
-/lib                    Server-side utilities
-  prisma.ts             Prisma client singleton
+app/                    Next.js 14 App Router
+  api/                  REST + Socket.io endpoints
+  (auth)/               Auth pages (login, register)
+  (main)/               Protected app pages (feed, messages, groups)
+  admin/                Admin panel (ADMIN role only)
+  layout.tsx            Root layout + providers
+  globals.css           Global styles
+
+components/
+  layout/               Header, Sidebar
+  messages/             Chat UI (ChatWindow, MessageBubble)
+  groups/               Group management (GroupClient)
+  profile/              User profile (ProfileClient)
+  providers/            React providers (Theme, Auth, Socket)
+  ui/                   Reusable components (PostCard, Avatar, etc)
+
+lib/                    Server-side utilities
   auth.ts               NextAuth configuration
   socket.ts             Socket.io server logic
-  moderation.ts         Word blacklist + Safe Browsing API
+  moderation.ts         Content moderation
   encryption.ts         TweetNaCl E2E wrappers
-  cloudinary.ts         Media upload helpers
-  rate-limit.ts         In-memory per-user rate limiter
-/prisma
-  schema.prisma         Full database schema
-  seed.ts               Admin account seeder
-/types                  TypeScript type definitions
-server.ts               Custom server (Next.js + Socket.io)
-middleware.ts           Route protection middleware
+  cloudinary.ts         Image upload
+  rate-limit.ts         Per-user rate limiting
+
+prisma/
+  schema.prisma         Database schema
+  seed.ts               Admin seeder
+
+types/                  TypeScript definitions
+
+server.ts               Custom Next.js + Socket.io server
+middleware.ts           Route protection
 ```
 
----
+### Request Flow
 
-## Deploy to Railway (Recommended)
-
-1. Push code to GitHub
-2. Create a new project at [railway.app](https://railway.app)
-3. Add a **PostgreSQL** plugin
-4. Connect your GitHub repository
-5. Add all environment variables from `.env.example`
-6. Deploy
-
-Railway will auto-detect the `railway.json` config and use the Dockerfile.
-
-## Deploy to Render
-
-1. Push to GitHub
-2. Create a Web Service at [render.com](https://render.com)
-3. Point to your repo, Render auto-reads `render.yaml`
-4. Add a **PostgreSQL** database resource
-5. Fill in environment variables
+1. **Public pages** → `/login`, `/register` (no auth required)
+2. **Protected routes** → middleware checks `next-auth` session token
+3. **Socket.io** → real-time messaging via `/api/socket` endpoint
+4. **Database** → Prisma queries (server-side only, never from client)
+5. **Media** → uploads to Cloudinary, returns signed URLs
+6. **E2E Encryption** → TweetNaCl on client-side for DMs only
 
 ---
 
 ## Features
 
-- ✅ Social feed with posts, images, videos, links
-- ✅ Automatic content moderation (word blacklist + Safe Browsing API)
-- ✅ E2E encrypted direct messages (TweetNaCl — server never reads content)
-- ✅ Real-time messaging and presence via Socket.io
-- ✅ Online/offline status (visible to friends only)
-- ✅ Friend system (send/accept/block)
-- ✅ Groups with invite links and real-time chat
-- ✅ Anonymous reports & suggestions
-- ✅ Admin panel (manage users, posts, reports, groups)
-- ✅ Dark / Light mode (persisted in localStorage)
-- ✅ Rate limiting (30 req/min per user)
-- ✅ Input sanitization on all endpoints
-- ✅ Strong password enforcement (admin accounts)
+- ✅ **Social Feed** — posts with images, videos, links, reactions
+- ✅ **Content Moderation** — word blacklist + Google Safe Browsing API
+- ✅ **E2E Encrypted DMs** — TweetNaCl encryption, server-side blind
+- ✅ **Real-time Messaging** — Socket.io with online/offline status
+- ✅ **Friend System** — send/accept/block users
+- ✅ **Groups** — create groups, invite links, moderated chat
+- ✅ **Admin Panel** — manage users, posts, reports, groups
+- ✅ **Dark/Light Mode** — client-side theme persistence
+- ✅ **Rate Limiting** — 30 requests/min per user
+- ✅ **Input Sanitization** — XSS protection on all endpoints
+- ✅ **Strong Passwords** — enforced for admin accounts
 
 ---
 
 ## Security Notes
 
-- **Private keys** are stored only in the user's browser (`localStorage`). The server never sees them.
-- **DM content** is encrypted with NaCl box — ciphertext stored in DB is unreadable by admins.
-- **Group messages** are NOT E2E encrypted — admins can moderate them.
-- Change `NEXTAUTH_SECRET` before going to production.
-- Set strong database credentials and restrict DB access.
+⚠️ **Before going to production:**
+
+1. **Change `NEXTAUTH_SECRET`** — never use the default
+2. **Restrict database access** — use connection whitelisting
+3. **Enable HTTPS** — production URL must be `https://`
+4. **Strong admin password** — use the seed password temporarily, change immediately
+5. **Rate limiting** — adjust if needed for your user base
+
+### Encryption Details
+
+- **DM Content** — encrypted with NaCl box cipher, server stores ciphertext unreadably
+- **Private Keys** — stored in browser `localStorage`, never sent to server
+- **Group Messages** — NOT E2E encrypted, admins can moderate them
+- **Database** — use SSL connection to PostgreSQL in production
+
+---
+
+## Troubleshooting
+
+### "ECONNREFUSED" on `npm run dev`
+
+Database is not running. Start PostgreSQL:
+
+```bash
+# If using Docker
+docker run --name isa-postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=isa_link \
+  -p 5432:5432 -d postgres:16
+
+# Or if using local PostgreSQL
+brew services start postgresql@16
+```
+
+### "PrismaClientInitializationError"
+
+Database URL is wrong or database doesn't exist. Check:
+1. `DATABASE_URL` in `.env.local`
+2. PostgreSQL is running: `psql postgres://...`
+3. Run migrations: `npm run db:migrate`
+
+### Socket.io connection fails
+
+- Check that Socket.io path is correct in `.env.local`
+- Verify `NEXTAUTH_URL` matches your domain
+- Check CORS settings in `server.ts` match your frontend URL
+
+### Cloudinary uploads fail
+
+- Verify `CLOUDINARY_*` variables are set
+- Check Cloudinary dashboard for API key validity
+- Ensure account has upload permissions
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on reporting issues, submitting PRs, and improving the codebase.
+
+---
+
+## License
+
+ISA Link is open source under the **MIT License**. See [LICENSE](LICENSE) for details.
+
+---
+
+## Support
+
+- 📧 Report bugs: [GitHub Issues](https://github.com/DRMCHK/ISA/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/DRMCHK/ISA/discussions)
+- 🐛 Security issues: [Report privately](https://github.com/DRMCHK/ISA/security)
+
+---
+
+## Roadmap
+
+- [ ] Mobile app (React Native)
+- [ ] AI-powered content recommendations
+- [ ] Video chat via WebRTC
+- [ ] Blockchain verification (future)
+- [ ] Multi-language support
+
+---
+
+**Made with ❤️ for international students**
