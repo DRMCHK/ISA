@@ -26,12 +26,13 @@ export default withAuth(
           pathname.startsWith('/login') ||
           pathname.startsWith('/register') ||
           pathname.startsWith('/api/auth') ||
+          pathname.startsWith('/api/health') ||
           pathname === '/'
         ) {
           return true;
         }
 
-        // All other routes require a valid token
+        // All other routes require authentication
         return !!token;
       },
     },
@@ -40,6 +41,6 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|logo.png|api/auth).*)',
+    '/((?!_next/static|_next/image|favicon.ico|logo.png).*)',
   ],
 };

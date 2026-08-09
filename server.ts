@@ -2,10 +2,11 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { Server as SocketServer } from 'socket.io';
+// CRITICAL: relative imports only — tsx does NOT resolve @/ path aliases
 import { initSocketServer } from './lib/socket';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = '0.0.0.0';
+const hostname = '0.0.0.0'; // required for Render
 const port = parseInt(process.env.PORT ?? '3000', 10);
 
 const app = next({ dev, hostname, port });
@@ -42,7 +43,7 @@ app.prepare().then(() => {
     const url = `http://localhost:${port}`;
     console.log(`
   ╔══════════════════════════════════════════════╗
-  ║       ISA Link v2.0 — Empowered To Succeed   ║
+  ║     ISA Link v2.0 — Empowered To Succeed     ║
   ╠══════════════════════════════════════════════╣
   ║  Mode:   ${dev ? 'Development                        ' : 'Production                         '}  ║
   ║  URL:    ${url.padEnd(36)}  ║
