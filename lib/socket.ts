@@ -1,5 +1,5 @@
 import { Server as SocketServer } from 'socket.io';
-import { prisma } from '@/lib/prisma';
+import { prisma } from './prisma';
 
 // Global singleton for access from API routes
 declare global {
