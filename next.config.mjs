@@ -5,9 +5,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'res.cloudinary.com' },
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
+      { protocol: 'https', hostname: 'ui-avatars.com' },
     ],
   },
-  // Fixed: serverComponentsExternalPackages was renamed in Next.js 14.2+
   serverExternalPackages: ['@prisma/client', 'bcryptjs'],
 };
 

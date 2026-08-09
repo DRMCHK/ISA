@@ -2,15 +2,13 @@ FROM node:20-alpine AS base
 
 WORKDIR /app
 
-# Install dependencies (including devDependencies needed for build)
+# Install dependencies (including devDeps needed for build)
 COPY package*.json ./
 COPY prisma ./prisma/
 RUN npm ci && npx prisma generate
 
-# Copy source
+# Copy source and build
 COPY . .
-
-# Build Next.js
 RUN npm run build
 
 # Production image

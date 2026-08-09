@@ -1,39 +1,21 @@
-// Word blacklist — add/remove words as needed
-const WORD_BLACKLIST: string[] = [
-  'badword1',
-  'badword2',
-  'slur1',
-  // Add institution-specific banned words here
+// Content moderation: word blacklist + optional Google Safe Browsing API
+
+const BLACKLIST = [
+  'spam', 'scam', 'hack', 'phish', 'malware', 'virus',
+  // Add more words as needed
 ];
 
-const BLACKLIST_REGEX = new RegExp(
-  WORD_BLACKLIST.map((w) => `\\b${w}\\b`).join('|'),
-  'gi'
-);
-
-export function containsBannedWords(text: string): boolean {
-  if (WORD_BLACKLIST.length === 0) return false;
-  return BLACKLIST_REGEX.test(text);
+export function containsBlacklistedWords(text: string): boolean {
+  const lower = text.toLowerCase();
+  return BLACKLIST.some((word) => lower.includes(word));
 }
 
-export function censorText(text: string): string {
-  return text.replace(BLACKLIST_REGEX, (match) => '*'.repeat(match.length));
-}
-
-/**
- * Check a URL against Google Safe Browsing API.
- * Returns true if the URL is SAFE (not flagged).
- * Gracefully degrades if API key is missing.
- */
-export async function isUrlSafe(url: string): Promise<boolean> {
+export async function checkUrlSafety(url: string): Promise<boolean> {
   const apiKey = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
-  if (!apiKey) {
-    // No API key configured — skip check (allow URL)
-    return true;
-  }
+  if (!apiKey) return true; // Degrade gracefully if not configured
 
   try {
-    const response = await fetch(
+    const res = await fetch(
       `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`,
       {
         method: 'POST',
@@ -41,7 +23,7 @@ export async function isUrlSafe(url: string): Promise<boolean> {
         body: JSON.stringify({
           client: { clientId: 'isa-link', clientVersion: '2.0.0' },
           threatInfo: {
-            threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE', 'POTENTIALLY_HARMFUL_APPLICATION'],
+            threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE'],
             platformTypes: ['ANY_PLATFORM'],
             threatEntryTypes: ['URL'],
             threatEntries: [{ url }],
@@ -50,34 +32,16 @@ export async function isUrlSafe(url: string): Promise<boolean> {
       }
     );
 
-    if (!response.ok) return true; // API error → allow
-
-    const data = (await response.json()) as { matches?: unknown[] };
-    // If matches array exists and has items, URL is unsafe
+    const data = await res.json() as { matches?: unknown[] };
     return !data.matches || data.matches.length === 0;
   } catch {
-    // Network error → allow (fail open)
-    return true;
+    return true; // Fail open — don't block content if API is down
   }
 }
 
-/**
- * Moderate a post. Returns flagged:true if content violates policy.
- */
-export async function moderatePost(
-  content: string | null,
-  linkUrl: string | null
-): Promise<{ flagged: boolean; reason?: string }> {
-  if (content && containsBannedWords(content)) {
-    return { flagged: true, reason: 'Banned words detected in content' };
+export function moderateContent(text: string): { flagged: boolean; reason?: string } {
+  if (containsBlacklistedWords(text)) {
+    return { flagged: true, reason: 'blacklisted_words' };
   }
-
-  if (linkUrl) {
-    const safe = await isUrlSafe(linkUrl);
-    if (!safe) {
-      return { flagged: true, reason: 'URL flagged by Google Safe Browsing' };
-    }
-  }
-
   return { flagged: false };
 }

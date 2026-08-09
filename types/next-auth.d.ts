@@ -1,5 +1,4 @@
-import 'next-auth';
-import 'next-auth/jwt';
+import NextAuth from 'next-auth';
 
 declare module 'next-auth' {
   interface Session {
@@ -8,8 +7,8 @@ declare module 'next-auth' {
       email: string;
       name: string;
       username: string;
-      role: 'MEMBER' | 'ADMIN';
-      avatarUrl: string | null;
+      role: string;
+      avatarUrl?: string;
       publicKey: string;
     };
   }
@@ -19,8 +18,8 @@ declare module 'next-auth' {
     email: string;
     name: string;
     username: string;
-    role: 'MEMBER' | 'ADMIN';
-    avatarUrl: string | null;
+    role: string;
+    avatarUrl?: string;
     publicKey: string;
   }
 }
@@ -29,8 +28,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     username: string;
-    role: 'MEMBER' | 'ADMIN';
-    avatarUrl: string | null;
+    role: string;
+    avatarUrl?: string;
     publicKey: string;
   }
 }

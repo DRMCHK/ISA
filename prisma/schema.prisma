@@ -95,7 +95,7 @@ model Like {
 
 model Message {
   id         String   @id @default(cuid())
-  ciphertext String   // E2E encrypted — server cannot read
+  ciphertext String   // E2E encrypted — server cannot read content
   nonce      String   // base64 NaCl nonce
   senderId   String
   receiverId String
@@ -118,32 +118,32 @@ model Friendship {
 }
 
 model Group {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
   avatarUrl   String?
-  inviteCode  String    @unique @default(cuid())
+  inviteCode  String   @unique @default(cuid())
   createdById String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
   members     GroupMember[]
   messages    GroupMessage[]
 }
 
 model GroupMember {
-  id      String    @id @default(cuid())
-  groupId String
-  userId  String
-  role    GroupRole @default(MEMBER)
-  joinedAt DateTime @default(now())
-  group   Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
 }
 
 model GroupMessage {
   id        String   @id @default(cuid())
-  content   String   // NOT E2E encrypted — admin can moderate
+  content   String   // NOT E2E encrypted — admins can moderate
   groupId   String
   authorId  String
   createdAt DateTime @default(now())
@@ -156,6 +156,7 @@ model Report {
   type      String   // "REPORT" | "SUGGESTION"
   content   String
   anonymous Boolean  @default(true)
+  resolved  Boolean  @default(false)
   authorId  String?
   createdAt DateTime @default(now())
   author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)

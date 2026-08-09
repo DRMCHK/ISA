@@ -1,65 +1,57 @@
 import nacl from 'tweetnacl';
-import { encodeBase64, decodeBase64 } from 'tweetnacl-util';
+import { encodeBase64, decodeBase64, encodeUTF8, decodeUTF8 } from 'tweetnacl-util';
 
-export interface EncryptedMessage {
-  ciphertext: string; // base64
-  nonce: string;      // base64
-}
+// ── Key generation ──────────────────────────────────────────────────────────
 
-/**
- * Generate a NaCl box keypair.
- * Call this client-side at registration.
- * Store publicKey on server, privateKey in localStorage ONLY.
- */
-export function generateKeyPair(): { publicKey: string; privateKey: string } {
-  const keyPair = nacl.box.keyPair();
+export function generateKeyPair(): { publicKey: string; secretKey: string } {
+  const kp = nacl.box.keyPair();
   return {
-    publicKey: encodeBase64(keyPair.publicKey),
-    privateKey: encodeBase64(keyPair.secretKey),
+    publicKey: encodeBase64(kp.publicKey),
+    secretKey: encodeBase64(kp.secretKey),
   };
 }
 
-/**
- * Encrypt a DM using the recipient's public key and sender's private key.
- * Returns ciphertext + nonce in base64.
- */
-export function encryptMessage(
-  plaintext: string,
-  recipientPublicKeyB64: string,
-  senderPrivateKeyB64: string
-): EncryptedMessage {
-  const recipientPublicKey = decodeBase64(recipientPublicKeyB64);
-  const senderPrivateKey = decodeBase64(senderPrivateKeyB64);
-  const nonce = nacl.randomBytes(nacl.box.nonceLength);
-  const messageUint8 = new TextEncoder().encode(plaintext);
+// ── Encryption (client-side, runs in browser) ───────────────────────────────
 
-  const encrypted = nacl.box(messageUint8, nonce, recipientPublicKey, senderPrivateKey);
+export function encryptMessage(
+  message: string,
+  recipientPublicKeyB64: string,
+  senderSecretKeyB64: string
+): { ciphertext: string; nonce: string } {
+  const nonce = nacl.randomBytes(nacl.box.nonceLength);
+  const recipientPubKey = decodeBase64(recipientPublicKeyB64);
+  const senderSecretKey = decodeBase64(senderSecretKeyB64);
+
+  const box = nacl.box(
+    encodeUTF8(message),
+    nonce,
+    recipientPubKey,
+    senderSecretKey
+  );
+
+  if (!box) throw new Error('Encryption failed');
 
   return {
-    ciphertext: encodeBase64(encrypted),
+    ciphertext: encodeBase64(box),
     nonce: encodeBase64(nonce),
   };
 }
 
-/**
- * Decrypt a DM using the sender's public key and recipient's private key.
- * Returns null if decryption fails (tampered or wrong key).
- */
 export function decryptMessage(
-  encryptedMsg: EncryptedMessage,
+  ciphertextB64: string,
+  nonceB64: string,
   senderPublicKeyB64: string,
-  recipientPrivateKeyB64: string
+  recipientSecretKeyB64: string
 ): string | null {
   try {
-    const senderPublicKey = decodeBase64(senderPublicKeyB64);
-    const recipientPrivateKey = decodeBase64(recipientPrivateKeyB64);
-    const ciphertext = decodeBase64(encryptedMsg.ciphertext);
-    const nonce = decodeBase64(encryptedMsg.nonce);
+    const ciphertext = decodeBase64(ciphertextB64);
+    const nonce = decodeBase64(nonceB64);
+    const senderPubKey = decodeBase64(senderPublicKeyB64);
+    const recipientSecretKey = decodeBase64(recipientSecretKeyB64);
 
-    const decrypted = nacl.box.open(ciphertext, nonce, senderPublicKey, recipientPrivateKey);
-    if (!decrypted) return null;
-
-    return new TextDecoder().decode(decrypted);
+    const message = nacl.box.open(ciphertext, nonce, senderPubKey, recipientSecretKey);
+    if (!message) return null;
+    return decodeUTF8(message);
   } catch {
     return null;
   }

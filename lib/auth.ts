@@ -1,7 +1,9 @@
 import { type AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
+// IMPORTANT: relative import — this file is used by NextAuth (server-side) but also
+// indirectly loaded by tsx. Keep it relative to avoid @/ alias resolution failures.
+import { prisma } from './prisma';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -37,7 +39,7 @@ export const authOptions: AuthOptions = {
         await prisma.user.update({
           where: { id: user.id },
           data: { isOnline: true },
-        });
+        }).catch(() => undefined);
 
         return {
           id: user.id,
@@ -45,7 +47,7 @@ export const authOptions: AuthOptions = {
           name: user.name,
           username: user.username,
           role: user.role,
-          avatarUrl: user.avatarUrl,
+          avatarUrl: user.avatarUrl ?? undefined,
           publicKey: user.publicKey,
         };
       },
@@ -55,19 +57,19 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.username = user.username;
-        token.role = user.role;
-        token.avatarUrl = user.avatarUrl;
-        token.publicKey = user.publicKey;
+        token.username = (user as { username: string }).username;
+        token.role = (user as { role: string }).role;
+        token.avatarUrl = (user as { avatarUrl?: string }).avatarUrl;
+        token.publicKey = (user as { publicKey: string }).publicKey;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.username = token.username;
-      session.user.role = token.role;
-      session.user.avatarUrl = token.avatarUrl;
-      session.user.publicKey = token.publicKey;
+      session.user.id = token.id as string;
+      session.user.username = token.username as string;
+      session.user.role = token.role as string;
+      session.user.avatarUrl = token.avatarUrl as string | undefined;
+      session.user.publicKey = token.publicKey as string;
       return session;
     },
   },
@@ -77,7 +79,7 @@ export const authOptions: AuthOptions = {
         await prisma.user.update({
           where: { id: token.id as string },
           data: { isOnline: false, lastSeen: new Date() },
-        }).catch(() => undefined); // non-blocking
+        }).catch(() => undefined);
       }
     },
   },
