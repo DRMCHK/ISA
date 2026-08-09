@@ -11,9 +11,9 @@ services:
     region: frankfurt
     plan: free
     buildCommand: npm ci && npm run build
-    preDeployCommand: npx prisma migrate deploy
-    afterFirstDeployCommand: npm run db:seed
-    startCommand: npm start
+    # Migrations run at startup (preDeployCommand requires a paid plan)
+    startCommand: npm run start:render
+    initialDeployHook: npm run db:seed
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

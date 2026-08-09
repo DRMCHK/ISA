@@ -33,13 +33,40 @@ export function extractFirstUrl(text: string): string | null {
 }
 
 export function isStrongPassword(password: string): boolean {
-  return (
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
+  return validateStrongPassword(password) === null;
+}
+
+/** Returns an error message, or null if the password is strong enough. */
+export function validateStrongPassword(password: string): string | null {
+  if (!password || password.length < 12) {
+    return 'Password must be at least 12 characters';
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter';
+  }
+  if (!/\d/.test(password)) {
+    return 'Password must contain at least one number';
+  }
+  if (!/[!@#$%^&*()_+=[\]{};':"\\|,.<>/?`~\-]/.test(password)) {
+    return 'Password must contain at least one symbol';
+  }
+  return null;
+}
+
+export function stripHtml(text: string): string {
+  return text.replace(/<[^>]*>/g, '');
+}
+
+export function getInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 }
 
 export function getAvatarUrl(name: string, avatarUrl?: string | null): string {

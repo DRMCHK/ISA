@@ -8,26 +8,22 @@ cloudinary.config({
 });
 
 export async function uploadToCloudinary(
-  fileBuffer: Buffer,
+  file: string | Buffer,
   folder: string = 'isa-link',
   resourceType: 'image' | 'video' | 'auto' = 'auto'
-): Promise<{ url: string; publicId: string }> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder,
-        resource_type: resourceType,
-        transformation:
-          resourceType === 'image'
-            ? [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }]
-            : undefined,
-      },
+      options,
       (error, result) => {
         if (error || !result) return reject(error ?? new Error('Upload failed'));
-        resolve({ url: result.secure_url, publicId: result.public_id });
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+          resourceType: result.resource_type,
+        });
       }
     );
-    uploadStream.end(fileBuffer);
+    uploadStream.end(file);
   });
 }
 

@@ -45,3 +45,22 @@ export function moderateContent(text: string): { flagged: boolean; reason?: stri
   }
   return { flagged: false };
 }
+
+export async function moderatePost(
+  content: string | null,
+  linkUrl: string | null
+): Promise<{ flagged: boolean; reason?: string }> {
+  if (content) {
+    const contentCheck = moderateContent(content);
+    if (contentCheck.flagged) return contentCheck;
+  }
+
+  if (linkUrl) {
+    const urlSafe = await checkUrlSafety(linkUrl);
+    if (!urlSafe) {
+      return { flagged: true, reason: 'unsafe_url' };
+    }
+  }
+
+  return { flagged: false };
+}

@@ -145,15 +145,9 @@ The GitHub Actions workflow (`.github/workflows/deploy.yml`) will automatically 
 5. Add environment variables
 6. Deploy
 
-### Option 3: Render.com
+### Option 3: Render.com (Blueprint — recommended for Socket.io)
 
-1. Push to GitHub
-2. Go to [render.com](https://render.com) → Create → Web Service
-3. Connect your GitHub repo
-4. Set build command: `npm run build`
-5. Set start command: `npm start`
-6. Create a PostgreSQL resource
-7. Add environment variables from `.env.example`
+Use the included [`render.yaml`](render.yaml) Blueprint. See [Deploy to Render (Blueprint)](#deploy-to-render-blueprint) below for step-by-step instructions.
 
 ### Option 4: Self-hosted (VPS, AWS, DigitalOcean)
 
@@ -174,7 +168,7 @@ docker run -d -p 3000:3000 --restart=always isa-link
 docker-compose up -d
 ```
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed guides for each platform.
+See the [Deploy to Render (Blueprint)](#deploy-to-render-blueprint) section below for detailed guides for each platform.
 
 ---
 
@@ -233,24 +227,14 @@ middleware.ts           Route protection
 
 ### Request Flow
 
-<<<<<<< Updated upstream
 1. **Public pages** → `/login`, `/register` (no auth required)
 2. **Protected routes** → middleware checks `next-auth` session token
 3. **Socket.io** → real-time messaging via `/api/socket` endpoint
 4. **Database** → Prisma queries (server-side only, never from client)
 5. **Media** → uploads to Cloudinary, returns signed URLs
 6. **E2E Encryption** → TweetNaCl on client-side for DMs only
-=======
-## Deploy to Railway (Recommended)
 
-1. Push code to GitHub
-2. Create a new project at [railway.app](https://railway.app)
-3. Add a **PostgreSQL** plugin
-4. Connect your GitHub repository
-5. Add all environment variables from `.env.example`
-6. Deploy
-
-Railway will auto-detect the `railway.json` config and use the Dockerfile.
+---
 
 ## Deploy to Render (Blueprint)
 
@@ -290,9 +274,8 @@ When prompted, set these secrets (`sync: false` in the Blueprint):
 Click **Apply**. Render will:
 
 1. Build the app (`npm ci && npm run build`)
-2. Run migrations (`npx prisma migrate deploy`)
-3. Start the server (`npm start`)
-4. Seed the admin account once (`npm run db:seed`)
+2. Start the server (`npm run start:render`), which runs migrations then launches the app
+3. Seed the admin account once (`npm run db:seed`)
 
 Check the deploy logs for the admin private key — it is printed only once during seeding.
 
@@ -309,7 +292,7 @@ Check the deploy logs for the admin private key — it is printed only once duri
 - **Web service** spins down after ~15 minutes of inactivity; the first visit after idle may take 30–60 seconds (cold start)
 - **Free PostgreSQL** expires **30 days** after creation — upgrade to a paid plan for long-lived deployments
 - WebSockets (Socket.io) are supported on free web services
->>>>>>> Stashed changes
+- `preDeployCommand` (migrations before deploy) requires a paid plan; this project runs migrations at startup instead
 
 ---
 

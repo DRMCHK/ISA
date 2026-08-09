@@ -13,6 +13,19 @@ const config: Config = {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        isa: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#1A56DB',
+          700: '#1d4ed8',
+          800: '#1e3a8a',
+          900: '#1e3a8a',
+          950: '#172554',
+        },
         brand: {
           50:  '#eef2ff',
           100: '#e0e7ff',
@@ -36,6 +49,7 @@ const config: Config = {
         },
       },
       backgroundImage: {
+        'isa-gradient': 'linear-gradient(135deg, #1A56DB 0%, #1e3a8a 100%)',
         'gradient-brand': 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
         'gradient-dark': 'linear-gradient(135deg, #0d0d1a 0%, #111122 100%)',
       },
