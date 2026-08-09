@@ -63,9 +63,11 @@ export default function RegisterPage() {
     setLoading(true);
 
     // Generate E2E keypair client-side
+    const { publicKey, secretKey } = generateKeyPair();
 
     // Store private key ONLY in localStorage
     if (typeof window !== 'undefined') {
+      localStorage.setItem('isa_privateKey', secretKey);
     }
 
     const res = await fetch('/api/auth/register', {
