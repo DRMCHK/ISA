@@ -1,21 +1,29 @@
+databases:
+  - name: isa-link-db
+    plan: free
+    databaseName: isa_link
+    user: isa_link
+
 services:
   - type: web
     name: isa-link
-    env: node
+    runtime: node
     region: frankfurt
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
+    preDeployCommand: npx prisma migrate deploy
+    afterFirstDeployCommand: npm run db:seed
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: 20
-      - key: PORT
-        value: 3000
+        value: "20"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: isa-link-db
+          property: connectionString
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL
@@ -29,4 +37,6 @@ services:
       - key: ADMIN_SEED_EMAIL
         sync: false
       - key: ADMIN_SEED_PASSWORD
+        sync: false
+      - key: GOOGLE_SAFE_BROWSING_API_KEY
         sync: false

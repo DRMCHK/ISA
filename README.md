@@ -233,12 +233,83 @@ middleware.ts           Route protection
 
 ### Request Flow
 
+<<<<<<< Updated upstream
 1. **Public pages** → `/login`, `/register` (no auth required)
 2. **Protected routes** → middleware checks `next-auth` session token
 3. **Socket.io** → real-time messaging via `/api/socket` endpoint
 4. **Database** → Prisma queries (server-side only, never from client)
 5. **Media** → uploads to Cloudinary, returns signed URLs
 6. **E2E Encryption** → TweetNaCl on client-side for DMs only
+=======
+## Deploy to Railway (Recommended)
+
+1. Push code to GitHub
+2. Create a new project at [railway.app](https://railway.app)
+3. Add a **PostgreSQL** plugin
+4. Connect your GitHub repository
+5. Add all environment variables from `.env.example`
+6. Deploy
+
+Railway will auto-detect the `railway.json` config and use the Dockerfile.
+
+## Deploy to Render (Blueprint)
+
+The repo includes a [`render.yaml`](render.yaml) Blueprint that provisions both the web service and a free PostgreSQL database.
+
+### 1. Push to GitHub
+
+Ensure your latest code is pushed to a GitHub repository.
+
+### 2. Create the Blueprint
+
+1. Go to [render.com](https://render.com) and sign in
+2. Click **New** → **Blueprint**
+3. Connect your GitHub account and select this repository
+4. Render reads `render.yaml` and shows the resources it will create:
+   - **isa-link** — Node.js web service
+   - **isa-link-db** — PostgreSQL database
+
+### 3. Fill in environment variables
+
+When prompted, set these secrets (`sync: false` in the Blueprint):
+
+| Variable | Value |
+|----------|-------|
+| `NEXTAUTH_URL` | Your Render URL, e.g. `https://isa-link.onrender.com` (use the URL Render assigns after deploy) |
+| `CLOUDINARY_CLOUD_NAME` | From your [Cloudinary dashboard](https://cloudinary.com) |
+| `CLOUDINARY_API_KEY` | From Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | From Cloudinary dashboard |
+| `ADMIN_SEED_EMAIL` | Admin login email |
+| `ADMIN_SEED_PASSWORD` | Strong password (12+ chars, uppercase, lowercase, digit, symbol) |
+| `GOOGLE_SAFE_BROWSING_API_KEY` | Optional — moderation works without it |
+
+`NEXTAUTH_SECRET` and `DATABASE_URL` are set automatically by the Blueprint.
+
+### 4. Deploy
+
+Click **Apply**. Render will:
+
+1. Build the app (`npm ci && npm run build`)
+2. Run migrations (`npx prisma migrate deploy`)
+3. Start the server (`npm start`)
+4. Seed the admin account once (`npm run db:seed`)
+
+Check the deploy logs for the admin private key — it is printed only once during seeding.
+
+### 5. Post-deploy checklist
+
+1. Confirm health: `GET https://<your-app>.onrender.com/api/health` returns `{ "status": "ok" }`
+2. Update `NEXTAUTH_URL` in the Render Dashboard if you used a placeholder during setup
+3. Log in with your admin credentials and visit `/admin`
+4. Test image upload (requires Cloudinary vars)
+5. Test realtime messaging (Socket.io at `/api/socket`)
+
+### Free tier notes
+
+- **Web service** spins down after ~15 minutes of inactivity; the first visit after idle may take 30–60 seconds (cold start)
+- **Free PostgreSQL** expires **30 days** after creation — upgrade to a paid plan for long-lived deployments
+- WebSockets (Socket.io) are supported on free web services
+>>>>>>> Stashed changes
 
 ---
 

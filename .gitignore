@@ -44,3 +44,4 @@ server/node_modules/
 # Scripts locaux (ne pas pousser)
 reinstall.ps1
 push-to-github.bat
+push-to-render.ps1

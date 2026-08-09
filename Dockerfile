@@ -2,10 +2,10 @@ FROM node:20-alpine AS base
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (including devDependencies needed for build)
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci --only=production && npm run db:generate
+RUN npm ci && npx prisma generate
 
 # Copy source
 COPY . .
@@ -20,12 +20,11 @@ ENV NODE_ENV=production
 
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/.next ./.next
-COPY --from=base /app/public ./public
 COPY --from=base /app/prisma ./prisma
 COPY --from=base /app/package*.json ./
 COPY --from=base /app/server.ts ./server.ts
 COPY --from=base /app/lib ./lib
-COPY --from=base /app/next.config.ts ./next.config.ts
+COPY --from=base /app/next.config.mjs ./next.config.mjs
 
 EXPOSE 3000
 
