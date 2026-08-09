@@ -27,10 +27,10 @@ export function encryptMessage(
   const senderSecretKey = decodeBase64(senderSecretKeyB64);
 
   const box = nacl.box(
-    encodeUTF8(message),
-    nonce,
-    recipientPubKey,
-    senderSecretKey
+  decodeUTF8(message),
+  nonce,
+  recipientPubKey,
+  senderSecretKey
   );
 
   if (!box) throw new Error('Encryption failed');
@@ -73,9 +73,9 @@ export function decryptMessage(
     const senderPubKey = decodeBase64(senderPublicKeyB64);
     const recipientSecretKey = decodeBase64(secretKeyB64);
 
-    const message = nacl.box.open(ciphertext, nonce, senderPubKey, recipientSecretKey);
-    if (!message) return null;
-    return decodeUTF8(message);
+  const message = nacl.box.open(ciphertext, nonce, senderPubKey, recipientSecretKey);
+if (!message) return null;
+return encodeUTF8(message);
   } catch {
     return null;
   }
