@@ -56,6 +56,13 @@
     "ts-jest": "^29.4.12",
     "typescript": "^5.5.3"
   },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/.next/",
+      "/coverage/"
+    ]
+  },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   }
