@@ -11,6 +11,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'ui-avatars.com' },
     ],
   },
+  // Required for Vercel deployment with Prisma
+  output: 'standalone',
 };
 
 export default nextConfig;
